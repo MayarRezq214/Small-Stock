@@ -1,0 +1,139 @@
+﻿@model ItemInStoreDto
+@{
+    ViewData["Title"] = "GetAllItemsFortore";
+}
+
+@{
+    string classType = "table-primary";
+}
+
+<span asp-validation-for="CurrentNumberOfItems"></span>
+
+<div class="card ">
+    <div class="card-body">
+        <h5 class="card-title">Store: @(((GetAllItemsForStoreDto)ViewData["ItemsForStore"]).StoreName)</h5>
+        @if (((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreItems!.Count == 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                There is no Items in the Store yet! Please add Item first.
+            </div>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Item Name</th>
+                        <th scope="col">Number Of Items </th>
+                        <th scope="col">Limit number of items</th>
+                        <th scope="col"> Measurment Unit </th>
+                        <th scope="col"> Adding </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in ((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreItems!)
+                    {
+                        if(item.CurrentNumberOfItems == item.LimitedNumberOfItems)
+                        {
+                            classType = "table-danger";
+                        }
+                        else if(item.CurrentNumberOfItems == 0)
+                        {
+                            classType = "table-dark";
+                        }
+                        else
+                        {
+                            classType = "table-primary";
+                        }
+
+                        <tr class="@classType">
+                            <th scope="row">@item.ItemName</th>
+                            <td>@item.CurrentNumberOfItems</td>
+                            <td>@item.LimitedNumberOfItems</td>
+                            <td>@item.MeasurmentUnit</td>
+                            
+                            <td>
+                                <form asp-action="Adding">
+                                    <input type="hidden" asp-for="StoreId" value="@(((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreId)">
+                                    <input type="hidden" asp-for="ItemId" value="@item.ItemId">
+                                    <input type="hidden" asp-for="CurrentNumberOfItems" value="@(item.CurrentNumberOfItems )">
+                                    <input type="hidden" asp-for="LimitedNumberOfItems" value="@item.LimitedNumberOfItems">
+                                        <div class="container">
+                                        <div class="row">
+                                                <div class="col col-lg-8">
+                                                <input type="number" name="Value" class="form-control" placeholder="Value To Add" required>
+                                            </div>
+                                            <div class="col col-lg-4">
+                                                <button type="submit" class="btn btn-primary">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                           
+                            
+                        </tr>
+
+                    }
+                </tbody>
+            </table>
+        }
+        
+       
+
+    </div>
+</div>
+<div class="card ">
+    <div class="card-body">
+        <h5 class="card-title">Add Item in store: @(((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreName)</h5>
+
+        <!-- No Labels Form -->
+        <form asp-action="AddItemsInStore" class="row g-3">
+            <input type="hidden" asp-for="StoreId" value=" @(((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreId)" />
+            <div class="col-md-12">
+                <select asp-for="ItemId" class="form-select" aria-label="Default select example"  required>
+                    <option value="@null" disabled selected>Select Item</option>
+                    @{
+                        bool flag = false;
+                    }
+                    @foreach (var item in (List<ItemDto>?)ViewData["Items"])
+                    {
+                        foreach (var storeItem in ((GetAllItemsForStoreDto)ViewData["ItemsForStore"]!).StoreItems!)
+                        {
+                            flag = false;
+                            if(item.Id == storeItem.ItemId)
+                            {
+                                <option value="@item.Id" disabled>@item.Name</option>
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if(flag  == false)
+                        {
+                            <option class="fw-bold" value="@item.Id">@item.Name</option>
+                        }
+
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input asp-for="CurrentNumberOfItems" type="number" class="form-control" placeholder="Current no" value="0" required>
+            </div>
+            <div class="col-md-2">
+                <input asp-for="LimitedNumberOfItems" type="number" class="form-control" placeholder="Limit no" required>
+            </div>
+            <span  asp-validation-for="CurrentNumberOfItems"></span>
+            <span asp-validation-for="LimitedNumberOfItems"></span>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary" >Submit</button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
+            </div>
+        </form><!-- End No Labels Form -->
+
+    </div>
+</div>
+
+<script src="/lib/jquery/dist/jquery.js"></script>
+<script src="/lib/jquery-validation/dist/jquery.validate.js"></script>
+<script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>

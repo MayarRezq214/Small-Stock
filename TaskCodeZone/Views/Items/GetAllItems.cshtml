@@ -1,0 +1,169 @@
+﻿@model ItemDto
+@{
+    ViewData["Title"] = "GetAllItems";
+}
+@{
+    int counter = 1;
+}
+<h1>All Items</h1>
+<input type="hidden" id="ItemId" />
+@if (((List<ItemDto>)ViewData["Items"]!).Count == 0)
+{
+    <div class="alert alert-danger" role="alert">
+        There is no Items yet! Please add Item first.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Item Name</th>
+                <th scope="col">Measurement Unit</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in (List<ItemDto>)ViewData["Items"])
+            {
+                <tr>
+                    <th scope="row">@counter</th>
+                    <td>@item.Name</td>
+                    <td>@item.MeasurementUnit</td>
+                    <td>
+                        @* <a asp-action="UpdateItem" asp-route-id="@item.Id" class="btn btn-secondary rounded-pill">Edit</a> *@
+                        <a onclick="EditForm(@item.Id)" class="btn btn-secondary rounded-pill">Edit</a>
+                        <a id="ShowModal" onclick="ConfirmDelete(@item.Id)" class="btn btn-danger rounded-pill">Delete</a>
+                    </td>
+                </tr>
+                
+                {
+                    counter++;
+                }   
+            }
+        </tbody>
+    </table>
+}
+<!--delete modal--> 
+<div class="modal fade" id="DeleteModel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Are You Sure You Want To Delete This Item?</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                This will also delete the items from all stores
+            </div>
+            <div class="modal-footer">
+                <button data-bs-dismiss="modal" class="btn btn-secondary rounded-pill">Cancel</button>
+                <button id="btnDelete" class="btn btn-danger rounded-pill">Yes Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--edit modal-->
+<div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form asp-action="UpdateItem" method="post" class="row g-3">
+              <div class="modal-body">
+        
+                    <input type="hidden" asp-for="Id" id="inputId"/>
+                    <div class="col-12">
+                        <label asp-for="Name" class="form-label">Item Name</label>
+                        <input asp-for="Name" class="form-control" id="inputName" required>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="MeasurementUnit" class="form-label">Measurement Unit</label>
+                        <input asp-for="MeasurementUnit" class="form-control" id="inputMeasurementUnit" required>
+                    </div>
+              </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+        </form>
+      
+    </div>
+  </div>
+</div>
+
+@if ((bool)ViewData["ItemFlag"]! == true)
+{
+    <div class="alert alert-danger" role="alert">
+        Item: @ViewData["ItemName"] Is Already Added! You Can Not Add The Same Item Twice.
+    </div>
+    ViewData["ItemFlag"] = false;
+}
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Add Item</h5>
+        <form action="/Items/AddItem" class="row g-3">
+            <div class="col-12">
+                <label asp-for="Name" class="form-label">Item Name</label>
+                <input asp-for="Name" class="form-control" id="inputNanm" required>
+            </div>
+            <div class="col-12">
+                <label asp-for="MeasurementUnit" class="form-label">Measurement Unit</label>
+                <input asp-for="MeasurementUnit" class="form-control" id="inputMeasurementUnit" required>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">ADD</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(document).on("click", "#btnDelete", function () {
+            var ItemId = $("#ItemId").val();
+            $.ajax({
+                url: '/Items/DeleteItemById',
+                type: 'POST',
+                data: { id: ItemId },
+                success: function (result) {
+                    $("#ItemId").val(null);
+                    window.location.href = "/Items/GetAllItems"
+                },
+                error: function (error) {
+                    alert("error")
+                }
+            });
+        });
+    });
+    var ConfirmDelete = function (id) {
+        $("#ItemId").val(id);
+        $("#DeleteModel").modal('show');
+    }
+    var EditForm = function (id) {
+        $.ajax({
+            url: '/Items/UpdateItem',
+            type: 'GET',
+            data: { id: id },
+            success: function (item) {
+                if (item) {
+                    console.log(id)
+                    $("#EditModal").modal('show');
+                    $("#inputName").val(item.name);
+                    $("#inputMeasurementUnit").val(item.measurementUnit);
+                    $("#inputId").val(item.id);
+                    console.log(item.name)
+                } else {
+                    alert("nott")
+                }
+            },
+            error: function (error) {
+                alert("error")
+            }
+        })
+    }
+</script>

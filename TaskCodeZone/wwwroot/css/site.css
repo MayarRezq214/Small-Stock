@@ -1,0 +1,26 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+.field-validation-error {
+    background-color: #f8d7da;
+    color: #58151c;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: auto auto;
+}

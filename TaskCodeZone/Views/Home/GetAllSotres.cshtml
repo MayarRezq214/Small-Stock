@@ -1,0 +1,185 @@
+﻿
+@model StoreDto
+@{
+    ViewData["Title"] = "GetAllSotres";
+    
+}
+@{
+    ViewData["store"] = new StoreDto();
+}
+@{int counter = 1;}
+<h1>All Stores</h1>
+<input type="hidden" id="StoreId" />
+@if (((List<StoreDto>)ViewData["stors"]).Count == 0)
+{
+    <div class="alert alert-danger" role="alert">
+        There is no Stores yet! Please add store first.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Address</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var Store in (List<StoreDto>)ViewData["stors"])
+            {
+                <tr>
+                    <th scope="row">@counter</th>
+                    <td>@Store.Name</td>
+                    <td>@Store.Address</td>
+                    <td>
+                        <a asp-action="GetAllItemsForStore" asp-controller="Home" asp-route-id="@Store.Id" class="btn btn-primary rounded-pill">View</a>
+                        <a id="EditForm" onclick="EditForm(@Store.Id)" class="btn btn-secondary rounded-pill open-modal">Edit</a>
+                        <a id="ShowModal" onclick="ConfirmDelete(@Store.Id)" class="btn btn-danger rounded-pill">Delete</a>
+                        
+                    </td>
+                </tr>
+                
+                {
+                    counter++;
+                }
+            }
+        </tbody>
+    </table>
+}
+<div class="modal fade" id="DeleteModel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Are You Sure You Want To Delete This Store ?</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                This will also delete the items in the store
+            </div>
+            <p></p>
+            <div class="modal-footer">
+
+                <button type="button" data-bs-dismiss="modal" class="btn btn-secondary rounded-pill">Cancel</button>
+                <button id="btnDelete" class="btn btn-danger rounded-pill">Yes Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--edit modal-->
+<div class="modal fade" id="EditModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateStore" method="post" class="row g-3">
+                <div class="modal-body">
+                    <input type="hidden" asp-for="Id" id="inputId"/>
+                    <div class="col-12">
+                        <label asp-for="Name" class="form-label">Store Name</label>
+                        <input asp-for="Name" class="form-control" id="inputNanme4" required>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Address" class="form-label">Address</label>
+                        <input asp-for="Address" class="form-control" id="inputAddress" placeholder="1234 Main St" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Updadte</button>
+                </div>
+             </form>
+
+        </div>
+    </div>
+</div>
+
+@if ((bool)ViewData["StoreFlag"]! == true)
+{
+    <div class="alert alert-danger" role="alert">
+        Store: @ViewData["StoreName"] With Address: @ViewData["StoreAddress"] Is Already Exist! You Can Not Add The Same Store With The Same Address Twice.
+    </div>
+    ViewData["ItemFlag"] = false;
+}
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Add Store</h5>
+
+        <form action="/Home/AddStore" class="row g-3">
+            
+            <div class="col-12">
+                <label asp-for="Name" class="form-label">Store Name</label>
+                <input asp-for="Name" class="form-control" id="inputNanme4" required>
+            </div>
+            <div class="col-12">
+                <label asp-for="Address" class="form-label">Address</label>
+                <input asp-for="Address" class="form-control" id="inputAddress" placeholder="1234 Main St" required>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">ADD</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+
+
+<script>
+    $(document).ready(function () {
+       
+        $(document).on("click", "#btnDelete", function () {
+            console.log("hiiiii");
+            var StoreId = $("#StoreId").val();
+            $.ajax({
+                url: '/Home/DeleteStoreByID',
+                type: 'POST',
+                data: { id: StoreId },
+                success: function (result) {
+                    $("#StoreId").val(null);
+                    console.log("done")
+                    window.location.href = "/Home/GetAllSotres"
+                },
+                error: function (error) {
+                    alert("errorr")
+                }
+            });
+        });
+    });
+    var ConfirmDelete = function (id) {
+        $("#StoreId").val(id);
+        $("#DeleteModel").modal('show');
+    }
+    var EditForm = function (id) {
+        $.ajax({
+            url: '/Home/UpdateStore',
+            type: 'GET',
+            data: { id: id },
+            success: function (store) {
+                if (store) {
+                    console.log(id)
+                    $("#EditModal").modal('show');
+                    $("#inputNanme4").val(store.name);
+                    $("#inputAddress").val(store.address);
+                    $("#inputId").val(store.id);
+                    
+                } else {
+                    alert("not found")
+                }
+            },
+            error: function (error) {
+                alert("error")
+            }
+        })
+    }
+</script>
+
